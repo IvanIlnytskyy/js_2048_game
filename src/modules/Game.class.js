@@ -109,6 +109,8 @@ class Game {
       this.addRandomTile();
       this.checkLose();
     }
+
+    return moved;
   }
   moveUp() {
     if (this.status !== 'playing') {
@@ -162,6 +164,8 @@ class Game {
       this.addRandomTile();
       this.checkLose();
     }
+
+    return moved;
   }
   moveDown() {
     if (this.status !== 'playing') {
@@ -217,6 +221,8 @@ class Game {
       this.addRandomTile();
       this.checkLose();
     }
+
+    return moved;
   }
 
   /**
@@ -268,6 +274,10 @@ class Game {
   }
 
   checkWin() {
+    if (this.status !== 'playing') {
+      return false;
+    }
+
     for (let row = 0; row < this.size; row++) {
       for (let col = 0; col < this.size; col++) {
         if (this.board[row][col] === 2048) {
@@ -312,11 +322,39 @@ class Game {
    * Starts the game.
    */
   start() {
-    if (this.status === 'idle') {
-      this.status = 'playing';
+    this.score = 0;
+    this.status = 'playing';
+
+    this.board = this.initialState.map((row) => [...row]);
+
+    const emptyCells = this.getEmptyCells();
+
+    if (emptyCells.length >= 2) {
       this.addRandomTile();
+      this.addRandomTile();
+    } else if (emptyCells.length === 1) {
       this.addRandomTile();
     }
+  }
+
+  restart() {
+    this.status = 'idle';
+    this.score = 0;
+    this.board = this.initialState.map((row) => [...row]);
+  }
+
+  getEmptyCells() {
+    const empty = [];
+
+    for (let i = 0; i < this.size; i++) {
+      for (let j = 0; j < this.size; j++) {
+        if (this.board[i][j] === 0) {
+          empty.push({ row: i, col: j });
+        }
+      }
+    }
+
+    return empty;
   }
 
   /**
@@ -332,12 +370,6 @@ class Game {
       ? initialState.map((row) => [...row])
       : Array.from({ length: this.size }, () => Array(this.size).fill(0));
 
-    this.board = this.initialState.map((row) => [...row]);
-  }
-
-  restart() {
-    this.status = 'idle';
-    this.score = 0;
     this.board = this.initialState.map((row) => [...row]);
   }
 }

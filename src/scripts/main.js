@@ -12,10 +12,11 @@ const messageLose = document.querySelector('.message-lose');
 
 // Старт або рестарт гри
 startButton.addEventListener('click', () => {
-  game.restart(); // очищає поле та додає дві нові плитки
+  game.start();
   render();
   hideMessages();
   startButton.textContent = 'Restart';
+  startButton.classList.add('restart');
 });
 
 // Обробка натискань клавіш
