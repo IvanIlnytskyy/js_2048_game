@@ -10,7 +10,6 @@ const messageStart = document.querySelector('.message-start');
 const messageWin = document.querySelector('.message-win');
 const messageLose = document.querySelector('.message-lose');
 
-// Старт або рестарт гри
 startButton.addEventListener('click', () => {
   game.start();
   render();
@@ -19,7 +18,6 @@ startButton.addEventListener('click', () => {
   startButton.classList.add('restart');
 });
 
-// Обробка натискань клавіш
 const arrowKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
 
 document.addEventListener('keydown', (e) => {
@@ -51,7 +49,6 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-// Рендер гри у таблиці
 function render() {
   const state = game.getState(); // [[0, 2, 0, 4], [...], ...]
 
@@ -61,7 +58,7 @@ function render() {
     const value = state[row][col];
 
     cell.textContent = value === 0 ? '' : value;
-    cell.className = 'field-cell'; // скидаємо всі стилі
+    cell.className = 'field-cell';
 
     if (value) {
       cell.classList.add(`field-cell--${value}`);
@@ -77,7 +74,6 @@ function render() {
   }
 }
 
-// Сховати всі повідомлення
 function hideMessages() {
   messageStart.classList.add('hidden');
   messageWin.classList.add('hidden');

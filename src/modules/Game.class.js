@@ -21,6 +21,32 @@ class Game {
    * initial state.
    */
 
+  combineLine(line) {
+    const nonZero = line.filter((val) => val !== 0);
+    const newLine = [];
+    let moved = false;
+    let scoreGained = 0;
+
+    for (let i = 0; i < nonZero.length; i++) {
+      if (nonZero[i] === nonZero[i + 1]) {
+        const merged = nonZero[i] * 2;
+
+        newLine.push(merged);
+        scoreGained += merged;
+        i++;
+        moved = true;
+      } else {
+        newLine.push(nonZero[i]);
+      }
+    }
+
+    while (newLine.length < this.size) {
+      newLine.push(0);
+    }
+
+    return { newLine, moved, scoreGained };
+  }
+
   moveLeft() {
     if (this.status !== 'playing') {
       return;
@@ -29,28 +55,15 @@ class Game {
     let moved = false;
 
     for (let i = 0; i < this.size; i++) {
-      const row = this.board[i].filter((val) => val !== 0); // тільки ненульові
-      const newRow = [];
+      const oldRow = [...this.board[i]];
+      const { newLine, scoreGained } = this.combineLine(oldRow);
 
-      for (let j = 0; j < row.length; j++) {
-        // Перевірка на об'єднання
-        if (row[j] === row[j + 1]) {
-          newRow.push(row[j] * 2);
-          this.score += row[j] * 2;
-          j++; // пропускаємо наступне число
-        } else {
-          newRow.push(row[j]);
-        }
-      }
+      this.board[i] = newLine;
 
-      while (newRow.length < this.size) {
-        newRow.push(0);
-      }
-
-      if (!this.arraysEqual(this.board[i], newRow)) {
-        this.board[i] = newRow;
+      if (!this.arraysEqual(oldRow, newLine)) {
         moved = true;
       }
+      this.score += scoreGained;
     }
 
     if (moved) {
@@ -77,31 +90,16 @@ class Game {
     let moved = false;
 
     for (let i = 0; i < this.size; i++) {
-      // 🔁 Реверс рядка
-      const row = [...this.board[i]].reverse().filter((val) => val !== 0);
-      const newRow = [];
+      const row = [...this.board[i]].reverse();
+      const { newLine, scoreGained } = this.combineLine(row);
+      const updatedRow = newLine.reverse();
 
-      for (let j = 0; j < row.length; j++) {
-        if (row[j] === row[j + 1]) {
-          newRow.push(row[j] * 2);
-          this.score += row[j] * 2;
-          j++;
-          moved = true;
-        } else {
-          newRow.push(row[j]);
-
-          if (this.board[i][this.size - 1 - j] !== row[j]) {
-            moved = true;
-          }
-        }
+      if (!this.arraysEqual(this.board[i], updatedRow)) {
+        moved = true;
       }
 
-      while (newRow.length < this.size) {
-        newRow.push(0);
-      }
-
-      // 🔁 Перевертаємо назад
-      this.board[i] = newRow.reverse();
+      this.board[i] = updatedRow;
+      this.score += scoreGained;
     }
 
     if (moved) {
@@ -112,6 +110,7 @@ class Game {
 
     return moved;
   }
+
   moveUp() {
     if (this.status !== 'playing') {
       return;
@@ -119,44 +118,18 @@ class Game {
 
     let moved = false;
 
-    for (let col = 0; col < this.size; col++) {
-      // ⬆️ Зчитуємо колонку
-      const column = [];
+    for (let j = 0; j < this.size; j++) {
+      const column = this.board.map((row) => row[j]);
+      const { newLine, scoreGained } = this.combineLine(column);
 
-      for (let row = 0; row < this.size; row++) {
-        if (this.board[row][col] !== 0) {
-          column.push(this.board[row][col]);
-        }
-      }
-
-      const newCol = [];
-
-      for (let i = 0; i < column.length; i++) {
-        if (column[i] === column[i + 1]) {
-          newCol.push(column[i] * 2);
-          this.score += column[i] * 2;
-          i++;
-          moved = true;
-        } else {
-          newCol.push(column[i]);
-
-          if (this.board[i][col] !== column[i]) {
-            moved = true;
-          }
-        }
-      }
-
-      while (newCol.length < this.size) {
-        newCol.push(0);
-      }
-
-      // ⬇️ Записуємо колонку назад
-      for (let row = 0; row < this.size; row++) {
-        if (this.board[row][col] !== newCol[row]) {
-          this.board[row][col] = newCol[row];
+      for (let i = 0; i < this.size; i++) {
+        if (this.board[i][j] !== newLine[i]) {
           moved = true;
         }
+        this.board[i][j] = newLine[i];
       }
+
+      this.score += scoreGained;
     }
 
     if (moved) {
@@ -174,46 +147,19 @@ class Game {
 
     let moved = false;
 
-    for (let col = 0; col < this.size; col++) {
-      // 🔁 Зчитуємо колонку в зворотному порядку
-      const column = [];
+    for (let j = 0; j < this.size; j++) {
+      const column = this.board.map((row) => row[j]).reverse();
+      const { newLine, scoreGained } = this.combineLine(column);
+      const finalColumn = newLine.reverse();
 
-      for (let row = this.size - 1; row >= 0; row--) {
-        if (this.board[row][col] !== 0) {
-          column.push(this.board[row][col]);
-        }
-      }
-
-      const newCol = [];
-
-      for (let i = 0; i < column.length; i++) {
-        if (column[i] === column[i + 1]) {
-          newCol.push(column[i] * 2);
-          this.score += column[i] * 2;
-          i++;
-          moved = true;
-        } else {
-          newCol.push(column[i]);
-
-          if (this.board[this.size - 1 - i][col] !== column[i]) {
-            moved = true;
-          }
-        }
-      }
-
-      while (newCol.length < this.size) {
-        newCol.push(0);
-      }
-
-      // 🔁 Запис назад у зворотному напрямку
-      for (let row = this.size - 1; row >= 0; row--) {
-        const index = this.size - 1 - row;
-
-        if (this.board[row][col] !== newCol[index]) {
-          this.board[row][col] = newCol[index];
+      for (let i = 0; i < this.size; i++) {
+        if (this.board[i][j] !== finalColumn[i]) {
           moved = true;
         }
+        this.board[i][j] = finalColumn[i];
       }
+
+      this.score += scoreGained;
     }
 
     if (moved) {
@@ -281,7 +227,7 @@ class Game {
     for (let row = 0; row < this.size; row++) {
       for (let col = 0; col < this.size; col++) {
         if (this.board[row][col] === 2048) {
-          this.status = 'win'; // Якщо є 2048, змінимо статус на 'win'
+          this.status = 'win';
 
           return true;
         }
@@ -295,12 +241,11 @@ class Game {
     for (let row = 0; row < this.size; row++) {
       for (let col = 0; col < this.size; col++) {
         if (this.board[row][col] === 0) {
-          return false; // Якщо є порожня клітинка, програшу немає
+          return false;
         }
       }
     }
 
-    // Перевіряємо, чи є можливість об'єднати клітинки
     for (let row = 0; row < this.size; row++) {
       for (let col = 0; col < this.size; col++) {
         if (
@@ -309,11 +254,11 @@ class Game {
           (row < this.size - 1 &&
             this.board[row][col] === this.board[row + 1][col])
         ) {
-          return false; // Якщо є можливість об'єднати, програшу ще немає
+          return false;
         }
       }
     }
-    this.status = 'lose'; // Якщо немає ходів, встановлюємо програш
+    this.status = 'lose';
 
     return true;
   }
